@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from preprocessing import robust_preprocess
 from grid_detection import get_sudoku_grid
-from warping import four_point_transform
+from wraping import four_point_transform
 
 # Local folder containing the test images
 IMAGE_DIR = "Project Test Cases-1"
