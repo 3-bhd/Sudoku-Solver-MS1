@@ -50,7 +50,7 @@ def show_originals(image_files):
     rows, cols = make_grid(n)
 
     plt.figure(figsize=(4 * cols, 4 * rows))
-    plt.suptitle("Original Images", fontsize=20)
+    plt.suptitle("Original", fontsize=20)
 
     for idx, filename in enumerate(image_files):
         img_path = os.path.join(IMAGE_DIR, filename)
@@ -74,7 +74,7 @@ def show_preprocessed(image_files):
     rows, cols = make_grid(n)
 
     plt.figure(figsize=(4 * cols, 4 * rows))
-    plt.suptitle("Preprocessed (Binary) Images", fontsize=20)
+    plt.suptitle("Preprocessed (Binary)", fontsize=20)
 
     for idx, filename in enumerate(image_files):
         img_path = os.path.join(IMAGE_DIR, filename)
@@ -98,7 +98,7 @@ def show_warped(image_files):
     rows, cols = make_grid(n)
 
     plt.figure(figsize=(4 * cols, 4 * rows))
-    plt.suptitle("Warped & Straightened Sudoku Grids", fontsize=20)
+    plt.suptitle("Warped & Straightened", fontsize=20)
 
     for idx, filename in enumerate(image_files):
         img_path = os.path.join(IMAGE_DIR, filename)
