@@ -31,6 +31,8 @@ warping.py # Perspective transform
 
 Project Test Cases-1/ # Input test images
 
+outputs/ # Output of the test images
+
 ## What the Script Shows
 
 Running the main file displays three stages for all test images:
