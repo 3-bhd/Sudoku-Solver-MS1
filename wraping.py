@@ -1,17 +1,16 @@
-# warping.py
 import cv2
 import numpy as np
 
 def order_points(pts):
     rect = np.zeros((4, 2), dtype="float32")
-
     s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]   # TL
-    rect[2] = pts[np.argmax(s)]   # BR
+
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
 
     diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)]  # TR
-    rect[3] = pts[np.argmax(diff)]  # BL
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
 
     return rect
 
@@ -22,13 +21,10 @@ def four_point_transform(image, pts):
 
     widthA = np.linalg.norm(br - bl)
     widthB = np.linalg.norm(tr - tl)
-    maxWidth = max(int(widthA), int(widthB))
-
     heightA = np.linalg.norm(tr - br)
     heightB = np.linalg.norm(tl - bl)
-    maxHeight = max(int(heightA), int(heightB))
 
-    side = max(maxWidth, maxHeight)
+    side = int(max(widthA, widthB, heightA, heightB))
 
     dst = np.array([
         [0, 0],
