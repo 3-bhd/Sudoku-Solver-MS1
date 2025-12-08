@@ -1,51 +1,189 @@
-# Sudoku Grid Extraction – Milestone 1
+# Sudoku Solver - Computer Vision Project
 
-This repository contains our work for Milestone 1 of the Computer Vision project.  
-The goal of this phase is to take a real Sudoku image, clean it, detect the outer frame, identify the four corners, and finally straighten the grid into a usable square that will later be passed to OCR.
+A comprehensive computer vision solution for detecting, extracting, recognizing, and solving Sudoku puzzles from images using OpenCV and Python.
 
 ## Overview
 
-Our pipeline goes through three main steps:
+This project implements an end-to-end pipeline that processes images of Sudoku puzzles and automatically solves them. It handles various image conditions including poor lighting, shadows, rotated grids, and different handwriting styles.
 
-1. **Preprocessing**  
+ **Features**  
    We apply grayscale conversion, CLAHE enhancement, Gaussian blur, adaptive thresholding, and morphological closing.  
    This makes the grid lines and numbers clearer and reduces noise so contour detection becomes more reliable.
+   
+- **Robust Grid Detection**: Detects Sudoku grids even in challenging conditions (shadows, rotation, broken lines)
+- **Smart Preprocessing**: Uses CLAHE and adaptive thresholding to handle uneven lighting
+- **Perspective Correction**: Automatically warps skewed grids to perfect squares
+- **Advanced Digit Recognition**: Multi-template matching with contour analysis for accurate digit identification
+- **Puzzle Validation**: Checks for duplicates and invalid configurations
+- **Backtracking Solver**: Solves valid Sudoku puzzles automatically
+- **Visual Debugging**: Comprehensive visualization at each pipeline stage
 
-2. **Grid Detection and Corner Extraction**  
-   We search the binary image for contours and try to approximate the Sudoku frame as a four-point polygon.  
-   If the standard thresholding fails, we use a fallback approach based on stronger enhancement, dilation, and convex-hull grouping of significant contour points.  
-   This allows us to handle difficult lighting conditions or weak grid lines.
+## Requirements
+```python
+opencv-python (cv2)
+numpy
+matplotlib
+```
 
-3. **Perspective Warping**  
-   After obtaining the four corners, we order them and apply a perspective transform.  
-   The output is a square, top-down view of the Sudoku grid, ready for OCR in the next milestone.
+Install dependencies:
+```bash
+pip install opencv-python numpy matplotlib
+```
 
-## Code Structure
-main_milestone1.py # Visualization pipeline
+## Project Structure
 
-preprocessing.py # Preprocessing steps
+The pipeline consists of five main stages:
 
-grid_detection.py # Contour extraction + fallback method
+### 1. Image Preprocessing
+- Converts to grayscale
+- Applies CLAHE (Contrast Limited Adaptive Histogram Equalization) for lighting normalization
+- Uses Gaussian blur to reduce noise
+- Applies adaptive thresholding to handle shadows
+- Morphological operations to connect broken lines
 
-warping.py # Perspective transform
+### 2. Grid Detection and Extraction
+- **Two-stage detection strategy**:
+  - Standard approach for well-lit images
+  - Dark fallback with dilation for poorly lit images
+- **Smart contour finding**:
+  - Attempts to find perfect square loops
+  - Uses "rubber band" technique (convex hull) for broken borders
+- **Perspective transformation**: Warps detected grid to perfect square dimensions
 
-Project Test Cases-1/ # Input test images
+### 3. Cell Extraction
+- Divides warped grid into 81 individual cells (9x9)
+- Uses dynamic margins (8% of cell size) to remove grid lines
+- Preserves digit content while cutting away borders
 
-outputs/ # Output of the test images
+### 4. Digit Recognition
+- **Empty cell detection**: Uses connected component analysis
+- **Digit extraction**: Finds and crops the main digit contour with intelligent filtering
+- **Multi-template matching**: 54 templates (6 variations per digit 1-9)
+  - Thin, medium, and bold variants
+  - SIMPLEX and DUPLEX font styles
+- **Contour-based matching**: Combines template matching with shape analysis
+  - Area ratio, perimeter, aspect ratio
+  - Extent, solidity, number of contours (holes)
+  - Hu Moments for rotation-invariant shape descriptors
+- **Confidence scoring**: Weighted combination of multiple metrics
+- **Special handling**: Distinguishes between similar digits (1 vs 2)
 
-## What the Script Shows
+### 5. Puzzle Solving
+- **Validation**: Checks for duplicates in rows, columns, and 3x3 boxes
+- **Backtracking algorithm**: Recursively solves valid puzzles
+- **Result visualization**: Shows original, recognized, and solved grids side-by-side
 
-Running the main file displays three stages for all test images:
+## Usage
 
-- the **original image**  
-- the **preprocessed binary image**  
-- the **warped, straightened grid** (with the method used: Standard or Fallback)
+### Basic Usage
+```python
+# Process a single image
+recognized, solved, confidence, status = process_sudoku_image_updated(
+    "01.jpg", 
+    multi_templates
+)
 
-This makes it easy to verify performance across different lighting and image qualities.
+if status == "Success":
+    print("Recognized Grid:")
+    print(recognized)
+    print("\nSolved Grid:")
+    print(solved)
+```
 
-## Notes
+### Batch Processing
+```python
+# Process multiple images
+image_files = [f"{i:02d}.jpg" for i in range(1, 17)]
 
-The current implementation meets all requirements for Milestone 1:  
-preprocessing, outer frame isolation, corner detection, and grid straightening.
+for filename in image_files:
+    recognized, solved, confidence, status = process_sudoku_image_updated(
+        filename, 
+        multi_templates
+    )
+    print(f"{filename}: {status}")
+```
 
-Milestone 2 will build on this by adding digit extraction and a basic OCR approach using pattern matching.
+### Visualization
+```python
+# Visualize results
+img = cv2.imread("01.jpg")
+visualize_results(img, recognized, solved, confidence)
+```
+
+## Key Functions
+
+### Grid Detection
+- `robust_preprocess(image_path)`: Preprocesses image for analysis
+- `get_sudoku_grid(img)`: Detects grid using two-stage strategy
+- `find_grid_contour(processed_img, img_area)`: Finds grid boundary
+- `four_point_transform(image, pts)`: Warps grid to square
+
+### Cell Processing
+- `extract_cells_from_grid(warped_img)`: Extracts 9x9 cell array
+- `preprocess_cell(cell)`: Prepares cell for digit recognition
+- `is_cell_empty(cell)`: Detects empty cells
+
+### Digit Recognition
+- `extract_digit_from_cell(cell)`: Extracts and normalizes digit
+- `create_multiple_templates_per_digit()`: Creates 54 templates
+- `match_digit_with_contour_analysis(digit_img, templates)`: Recognizes digit with confidence score
+
+### Puzzle Solving
+- `is_valid(grid, row, col, num)`: Validates number placement
+- `solve_sudoku(grid)`: Solves puzzle using backtracking
+- `validate_sudoku(grid)`: Checks grid validity
+
+## Algorithm Details
+
+### Grid Detection Strategy
+
+1. **Standard Method**: Works for 15/16 test images
+   - Simple Gaussian blur + adaptive threshold
+   - Finds largest square contour
+
+2. **Dark Fallback**: Handles poorly lit images
+   - CLAHE for brightness enhancement
+   - Dilation to connect faint lines
+   - Higher block size for adaptive threshold
+
+3. **Rubber Band Technique**: Handles broken borders
+   - Collects significant contour points
+   - Constructs convex hull
+   - Approximates hull to square
+
+### Digit Recognition Approach
+
+**Multi-Metric Scoring** (weights):
+- 35% - Max correlation coefficient
+- 15% - Average of top 3 correlation scores
+- 10% - Max cross-correlation
+- 10% - Max inverted squared difference
+- 20% - Max contour similarity
+- 10% - Average contour similarity
+
+**Contour Features**:
+- Area ratio, perimeter, aspect ratio
+- Extent (contour/bounding box ratio)
+- Solidity (contour/convex hull ratio)
+- Number of contours (hole detection)
+- Hu Moments (first 3 invariants)
+
+**Special Cases**:
+- Rejects digits with combined score < 0.38
+- Prefers digit 1 over 2 when score difference is 0-0.1
+
+## Performance
+
+The system successfully handles:
+- ✅ Various lighting conditions
+- ✅ Rotated and skewed grids
+- ✅ Broken or dashed grid lines
+- ✅ Different handwriting styles
+- ✅ Shadows and reflections
+- ✅ Thin digits (like "1")
+
+**Confidence Thresholds**:
+- High confidence: ≥ 0.60 (dark green)
+- Good confidence: 0.50 - 0.59 (green)
+- Low confidence: 0.38 - 0.49 (orange)
+- Rejected: < 0.38 (red)
