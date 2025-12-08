@@ -1,11 +1,11 @@
 import cv2
 from preprocessing import robust_preprocess
 from grid_detection import get_sudoku_grid
-from warping import four_point_transform
+from wraping import four_point_transform
 from cell_processing import extract_cells_from_grid, preprocess_cell, is_cell_empty
 from ocr_templates import create_multiple_templates_per_digit
 from ocr_matching import extract_digit_from_cell, match_digit_with_contour_analysis
-from sudoku_solver import validate_sudoku, solve_sudoku
+from sudoko_solver import validate_sudoku, solve_sudoku
 from visualization import visualize_results
 import numpy as np
 import os
