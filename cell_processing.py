@@ -59,6 +59,41 @@ def preprocess_cell(cell):
 
     return mask
 
+def white_ratio(img):
+        return float(np.sum(img == 255)) / img.size
+
+    r_otsu = white_ratio(th_otsu)
+    r_adapt = white_ratio(th_adapt)
+
+    # Target: some white, but not full snow
+    candidates = []
+    if 0.02 < r_otsu < 0.35:
+        candidates.append((th_otsu, abs(r_otsu - 0.15)))
+    if 0.02 < r_adapt < 0.35:
+        candidates.append((th_adapt, abs(r_adapt - 0.15)))
+
+    if candidates:
+        thresh = min(candidates, key=lambda x: x[1])[0]
+    else:
+        # Fallback: choose closer to target ratio
+        thresh = th_otsu if abs(r_otsu - 0.15) < abs(r_adapt - 0.15) else th_adapt
+
+    # 5) Morphology to clean and thicken digits
+    kernel = np.ones((2, 2), np.uint8)
+    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+    cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel, iterations=1)
+
+    # 6) Remove tiny components (pepper noise)
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(cleaned, connectivity=8)
+    min_area = 0.002 * cleaned.size  # 0.2% of cell area
+
+    mask = np.zeros_like(cleaned)
+    for i in range(1, num_labels):
+        area = stats[i, cv2.CC_STAT_AREA]
+        if area >= min_area:
+            mask[labels == i] = 255
+
+    return mask
 
 def is_cell_empty(cell, threshold_area_ratio=0.01):
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(cell)
@@ -70,3 +105,4 @@ def is_cell_empty(cell, threshold_area_ratio=0.01):
             return False
 
     return True
+
