@@ -122,5 +122,10 @@ for filename in image_files:
 ## Authors
 
 - **Omar Abdelhady** — [@3-bhd](https://github.com/3-bhd)
+- **Ahmed Ayman** — [@Ahmedayman55](https://github.com/Ahmedayman55)
+- **Ahmed Monir** — [@MonirCSauc](https://github.com/MonirCSauc)
+- **John Ashraf Ibrahim** — [@john-ashraf-7](https://github.com/john-ashraf-7)
+
+The American University in Cairo — Computer Vision Course
 
 The American University in Cairo — Computer Vision Course
